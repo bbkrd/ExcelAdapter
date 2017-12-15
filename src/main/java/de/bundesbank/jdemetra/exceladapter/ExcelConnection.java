@@ -31,9 +31,9 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = IExternalDataProvider.class)
 public class ExcelConnection implements IExternalDataProvider {
 
-    public static String METADATA_EXCEL_FILE = "excel.file.";
-    public static String METADATA_EXCEL_SHEET = "excel.sheet.";
-    public static String METADATA_EXCEL_SERIES = "excel.series.";
+    public static final String METADATA_EXCEL_FILE = "excel.file.";
+    public static final String METADATA_EXCEL_SHEET = "excel.sheet.";
+    public static final String METADATA_EXCEL_SERIES = "excel.series.";
 
     @Override
     public Ts convertMetaDataToTs(MetaData meta, String tableName) {
@@ -59,22 +59,18 @@ public class ExcelConnection implements IExternalDataProvider {
             List<DataSet> sheets = provider.children(spreadsheet);
             Optional<DataSet> specifiedSheet = sheets.stream().filter(i -> i.getParam("sheetName").get().equals(sheetName)).findFirst();
             if (!specifiedSheet.isPresent()) {
-                Ts ts = TsFactory.instance.createTs(tableName);
-                ts.setInvalidDataCause("Sheet " + sheetName + " doesn't exist.");
-                return ts;
+                return createInvalidTs(tableName, "Sheet " + sheetName + " doesn't exist.");
             }
 
             List<DataSet> series = provider.children(specifiedSheet.get());
             Optional<DataSet> specifiedSeries = series.stream().filter(i -> i.getParam("seriesName").get().equals(seriesName)).findFirst();
             if (!specifiedSeries.isPresent()) {
-                Ts ts = TsFactory.instance.createTs(tableName);
-                ts.setInvalidDataCause("Series " + seriesName + " doesn't exist in " + sheetName + ".");
                 return createInvalidTs(tableName, "Series " + seriesName + " doesn't exist in " + sheetName + ".");
             }
 
             TsMoniker moniker = provider.toMoniker(specifiedSeries.get());
             return TsFactory.instance.createTs(tableName, moniker, TsInformationType.All);
-        } catch (IOException ex) {
+        } catch (IllegalArgumentException | IOException ex) {
             Logger.getLogger(ExcelConnection.class.getName()).log(Level.SEVERE, null, ex);
             return createInvalidTs(tableName, "Critical error!");
         }

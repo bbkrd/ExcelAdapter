@@ -10,6 +10,8 @@ import ec.nbdemetra.sa.SaBatchUI;
 import ec.nbdemetra.ws.actions.AbstractViewAction;
 import ec.tss.sa.SaItem;
 import java.util.Arrays;
+import javax.swing.JFileChooser;
+import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -49,11 +51,23 @@ public class SelectionSaveExcel extends AbstractViewAction<SaBatchUI> {
 
     @Override
     protected void process(SaBatchUI context) {
-        SaItem[] selection = context.getSelection();
-        SaveData x = new SaveData();
-        x.addData(context.getName(), Arrays.asList(selection));
-        x.save();
-        context.setSelection(new SaItem[0]);
-        context.setSelection(selection);
+        Thread t = new Thread(() -> {
+            ProgressHandle progressHandle = ProgressHandle.createHandle("Save Selection to Excel");
+            progressHandle.start();
+
+            JFileChooser chooser = ExcelFileChooser.INSTANCE;
+            if (chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) {
+                progressHandle.finish();
+                return;
+            }
+
+            SaItem[] selection = context.getSelection();
+            SaveData x = new SaveData();
+            x.addData(context.getName(), Arrays.asList(selection));
+            x.save(chooser.getSelectedFile());
+            progressHandle.finish();
+        }, "SaveSelectionToExcel-Thread");
+        t.setDaemon(false);
+        t.start();
     }
 }

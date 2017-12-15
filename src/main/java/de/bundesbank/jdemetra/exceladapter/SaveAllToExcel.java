@@ -14,6 +14,8 @@ import ec.nbdemetra.ws.WorkspaceItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import javax.swing.JFileChooser;
+import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -32,15 +34,30 @@ public final class SaveAllToExcel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Workspace workspace = WorkspaceFactory.getInstance().getActiveWorkspace();
-        IWorkspaceItemManager mgr = WorkspaceFactory.getInstance().getManager(MultiProcessingManager.ID);
-        if (mgr != null) {
-            List<WorkspaceItem<MultiProcessingDocument>> list = workspace.searchDocuments(mgr.getItemClass());
-            SaveData sd = new SaveData();
-            list.stream().forEach((item) -> {
-                sd.addData(item.getDisplayName(), item.getElement().getCurrent());
-            });
-            sd.save();
-        }
+        Thread t = new Thread(() -> {
+            ProgressHandle progressHandle = ProgressHandle.createHandle("Save all Information to Excel");
+            progressHandle.start();
+
+            JFileChooser chooser = ExcelFileChooser.INSTANCE;
+            if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) {
+                progressHandle.finish();
+                return;
+            }
+
+            Workspace workspace = WorkspaceFactory.getInstance().getActiveWorkspace();
+            IWorkspaceItemManager mgr = WorkspaceFactory.getInstance().getManager(MultiProcessingManager.ID);
+            if (mgr != null) {
+                List<WorkspaceItem<MultiProcessingDocument>> list = workspace.searchDocuments(mgr.getItemClass());
+                SaveData sd = new SaveData();
+                list.stream().forEach((item) -> {
+                    sd.addData(item.getDisplayName(), item.getElement().getCurrent());
+                });
+                sd.save(chooser.getSelectedFile());
+            }
+
+            progressHandle.finish();
+        }, "SaveAllToExcel-Thread");
+        t.start();
+
     }
 }

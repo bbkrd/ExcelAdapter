@@ -52,21 +52,36 @@ public class SelectionAddExcelMeta extends AbstractViewAction<SaBatchUI> {
     @Override
     protected void process(SaBatchUI context) {
         SaItem[] selection = context.getSelection();
-        addMetaData(selection);
+        addMetaData(selection, context.getName());
         context.setSelection(new SaItem[0]);
         context.setSelection(selection);
     }
 
-    private void addMetaData(SaItem[] items) {
+    private void addMetaData(SaItem[] items, String multiDocName) {
         for (SaItem item : items) {
+            String itemName = item.getRawName().isEmpty() ? item.getTs().getRawName() : item.getRawName();
             MetaData metaData = item.getMetaData();
             if (metaData == null) {
                 metaData = new MetaData();
             }
             for (SavedTables.TABLES table : SavedTables.TABLES.values()) {
+                String tableName;
+                switch (table) {
+                    case CALENDARFACTOR:
+                        tableName = "-A6A7";
+                        break;
+                    case FORECAST:
+                        tableName = "-A1a";
+                        break;
+                    case SEASONALFACTOR:
+                        tableName = "-D10";
+                        break;
+                    default:
+                        tableName = "";
+                }
                 metaData.putIfAbsent(METADATA_EXCEL_FILE + table, "");
-                metaData.putIfAbsent(METADATA_EXCEL_SHEET + table, "");
-                metaData.putIfAbsent(METADATA_EXCEL_SERIES + table, "");
+                metaData.putIfAbsent(METADATA_EXCEL_SHEET + table, multiDocName + tableName);
+                metaData.putIfAbsent(METADATA_EXCEL_SERIES + table, itemName);
 
             }
             item.setMetaData(metaData);
