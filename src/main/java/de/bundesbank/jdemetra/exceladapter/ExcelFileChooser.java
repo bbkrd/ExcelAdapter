@@ -49,4 +49,13 @@ public class ExcelFileChooser extends JFileChooser {
         super.approveSelection();
     }
 
+    @Override
+    public void setSelectedFile(File file) {
+        String withExtension = file.getAbsolutePath();
+        if (!withExtension.toLowerCase().endsWith(".xlsx")) {
+            withExtension += ".xlsx";
+        }
+        super.setSelectedFile(new File(withExtension)); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

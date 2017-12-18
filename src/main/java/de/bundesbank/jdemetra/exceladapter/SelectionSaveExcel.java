@@ -9,8 +9,10 @@ import ec.nbdemetra.sa.MultiProcessingManager;
 import ec.nbdemetra.sa.SaBatchUI;
 import ec.nbdemetra.ws.actions.AbstractViewAction;
 import ec.tss.sa.SaItem;
+import java.io.File;
 import java.util.Arrays;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -32,7 +34,7 @@ import org.openide.util.NbBundle;
 )
 
 @ActionReference(path = MultiProcessingManager.LOCALPATH)
-@NbBundle.Messages("CTL_SelectionSaveExcel=Save Excel")
+@NbBundle.Messages("CTL_SelectionSaveExcel=Save to Excel")
 
 public class SelectionSaveExcel extends AbstractViewAction<SaBatchUI> {
 
@@ -56,15 +58,26 @@ public class SelectionSaveExcel extends AbstractViewAction<SaBatchUI> {
             progressHandle.start();
 
             JFileChooser chooser = ExcelFileChooser.INSTANCE;
-            if (chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) {
+            if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) {
                 progressHandle.finish();
                 return;
             }
-
+            File file = chooser.getSelectedFile();
             SaItem[] selection = context.getSelection();
-            SaveData x = new SaveData();
-            x.addData(context.getName(), Arrays.asList(selection));
-            x.save(chooser.getSelectedFile());
+            String multiDocName = context.getName();
+            SaveData sd = new SaveData();
+            sd.addData(multiDocName, Arrays.asList(selection));
+
+            if (sd.save(file)) {
+                if (JOptionPane.showConfirmDialog(null, "Do you want to set the saved file as new input for ConCur?", "Input for ConCur", JOptionPane.YES_NO_OPTION)
+                        == JOptionPane.YES_OPTION) {
+                    String filePath = file.getAbsolutePath();
+                    ExcelMetaDataHelper metaDataHelper = new ExcelMetaDataHelper(filePath);
+                    for (SaItem saItem : selection) {
+                        metaDataHelper.overrideMetaData(saItem, multiDocName);
+                    }
+                }
+            }
             progressHandle.finish();
         }, "SaveSelectionToExcel-Thread");
         t.setDaemon(false);

@@ -13,8 +13,10 @@ import ec.nbdemetra.ws.WorkspaceFactory;
 import ec.nbdemetra.ws.WorkspaceItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.List;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -44,6 +46,7 @@ public final class SaveAllToExcel implements ActionListener {
                 return;
             }
 
+            File file = chooser.getSelectedFile();
             Workspace workspace = WorkspaceFactory.getInstance().getActiveWorkspace();
             IWorkspaceItemManager mgr = WorkspaceFactory.getInstance().getManager(MultiProcessingManager.ID);
             if (mgr != null) {
@@ -52,7 +55,18 @@ public final class SaveAllToExcel implements ActionListener {
                 list.stream().forEach((item) -> {
                     sd.addData(item.getDisplayName(), item.getElement().getCurrent());
                 });
-                sd.save(chooser.getSelectedFile());
+                if (sd.save(file)) {
+                    if (JOptionPane.showConfirmDialog(null, "Do you want to set the saved file as new input for ConCur?", "Input for ConCur", JOptionPane.YES_NO_OPTION)
+                            == JOptionPane.YES_OPTION) {
+                        String filePath = file.getAbsolutePath();
+                        ExcelMetaDataHelper metaDataHelper = new ExcelMetaDataHelper(filePath);
+                        list.stream()
+                                .forEach(item -> {
+                                    String multidocName = item.getDisplayName();
+                                    item.getElement().getCurrent().forEach(saItem -> metaDataHelper.overrideMetaData(saItem, multidocName));
+                                });
+                    }
+                }
             }
 
             progressHandle.finish();

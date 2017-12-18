@@ -50,6 +50,7 @@ public class SaveData {
     public boolean save(File file) {
         try {
             File tempFile = File.createTempFile("JDemetra+", "ExcelSave.xlsx");
+            log.info("Writing to {}", tempFile.getAbsolutePath());
             try (FileOutputStream tempStream = new FileOutputStream(tempFile)) {
                 XSSFWorkbook workbook = new XSSFWorkbook();
                 CellStyle cellStyle = workbook.createCellStyle();
@@ -65,7 +66,7 @@ public class SaveData {
                     TsDomain dom = dataTable.getDomain();
                     if (dom == null || dom.isEmpty()) {
                         //TODO?
-                        log.info("Nothing in {0}", entry.getKey());
+                        log.info("Nothing in {}", entry.getKey());
                         continue;
                     }
 
@@ -141,7 +142,7 @@ public class SaveData {
             TsData d10 = result.getData(X11Kernel.D10, TsData.class);
             if (d10 != null) {
                 TsData d10a = result.getData(X11Kernel.D10a, TsData.class);
-                Ts seasonalfactor = TsFactory.instance.createTs(name, null, d10.update(d10a));
+                Ts seasonalfactor = TsFactory.instance.createTs(name, null, isMultiplicative ? d10.update(d10a).times(100) : d10.update(d10a));
                 seasonalFactors.add(seasonalfactor);
             }
 
@@ -158,7 +159,7 @@ public class SaveData {
                 }
             }
             if (calFactorData != null) {
-                Ts calFactor = TsFactory.instance.createTs(name, null, calFactorData);
+                Ts calFactor = TsFactory.instance.createTs(name, null, isMultiplicative ? calFactorData.times(100) : calFactorData);
                 calendarFactors.add(calFactor);
             }
 

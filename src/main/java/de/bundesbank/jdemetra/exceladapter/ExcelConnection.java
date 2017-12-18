@@ -65,7 +65,7 @@ public class ExcelConnection implements IExternalDataProvider {
             List<DataSet> series = provider.children(specifiedSheet.get());
             Optional<DataSet> specifiedSeries = series.stream().filter(i -> i.getParam("seriesName").get().equals(seriesName)).findFirst();
             if (!specifiedSeries.isPresent()) {
-                return createInvalidTs(tableName, "Series " + seriesName + " doesn't exist in " + sheetName + ".");
+                return createInvalidTs(tableName, "Series " + seriesName + " doesn't exist in sheet " + sheetName + ".");
             }
 
             TsMoniker moniker = provider.toMoniker(specifiedSeries.get());
