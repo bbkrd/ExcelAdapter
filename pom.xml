@@ -51,7 +51,7 @@
         <dependency>
             <groupId>de.bbk</groupId>
             <artifactId>ConCur</artifactId>
-            <version>0.5.5.7</version>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.joinup.sat</groupId>

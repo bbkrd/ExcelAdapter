@@ -57,6 +57,7 @@ public class ExcelFileChooser extends JFileChooser {
                 withExtension += ".xlsx";
             }
             super.setSelectedFile(new File(withExtension));
+            return;
         }
         super.setSelectedFile(file);
     }
