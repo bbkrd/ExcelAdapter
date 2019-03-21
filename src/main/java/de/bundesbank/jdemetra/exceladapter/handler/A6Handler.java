@@ -56,7 +56,7 @@ public class A6Handler implements IHandler {
             }
         });
 
-        return Pair.of(multidocName + "-A6", list);
+        return Pair.of(multidocName + "-A6A7", list);
 
     }
 

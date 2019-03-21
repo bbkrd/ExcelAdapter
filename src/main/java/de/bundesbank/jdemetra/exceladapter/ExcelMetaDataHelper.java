@@ -9,6 +9,7 @@ import de.bbk.concur.util.SavedTables;
 import static de.bundesbank.jdemetra.exceladapter.ExcelConnection.*;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
+import java.util.List;
 import java.util.function.BiFunction;
 
 /**
@@ -18,8 +19,6 @@ import java.util.function.BiFunction;
 public class ExcelMetaDataHelper {
 
     private final String filePath;
-    private String itemName, multiDocName;
-    private MetaData metaData;
 
     public ExcelMetaDataHelper() {
         this.filePath = "";
@@ -33,21 +32,33 @@ public class ExcelMetaDataHelper {
         }
     }
 
-    public void addMetaData(SaItem item, String multiDocName) {
-        getItemName(item);
-        getOrCreateMetaData(item);
-        this.multiDocName = multiDocName;
-        fillMetaData(metaData::putIfAbsent);
+    public void addMetaData(Data item) {
+        String multiDocName = item.getName();
+        for (SaItem saItem : item.getCurrent()) {
+            String itemName = getItemName(saItem);
+            MetaData metaData = getOrCreateMetaData(saItem);
+            fillMetaData(metaData::putIfAbsent, multiDocName, itemName);
+        }
     }
 
-    public void overrideMetaData(SaItem item, String multiDocName) {
-        getItemName(item);
-        getOrCreateMetaData(item);
-        this.multiDocName = multiDocName;
-        fillMetaData(metaData::put);
+    public void addMetaDatas(List<Data> items) {
+        items.forEach(this::addMetaData);
     }
 
-    private void fillMetaData(BiFunction<String, String, String> function) {
+    public void overrideMetaData(Data item) {
+        String multiDocName = item.getName();
+        for (SaItem saItem : item.getCurrent()) {
+            String itemName = getItemName(saItem);
+            MetaData metaData = getOrCreateMetaData(saItem);
+            fillMetaData(metaData::put, multiDocName, itemName);
+        }
+    }
+
+    public void overrideMetaDatas(List<Data> items) {
+        items.forEach(this::overrideMetaData);
+    }
+
+    private void fillMetaData(BiFunction<String, String, String> function, String multiDocName, String itemName) {
         for (SavedTables.TABLES table : SavedTables.TABLES.values()) {
             String tableName;
             switch (table) {
@@ -69,15 +80,16 @@ public class ExcelMetaDataHelper {
         }
     }
 
-    private void getItemName(SaItem item) {
-        this.itemName = item.getRawName().isEmpty() ? item.getTs().getRawName() : item.getRawName();
+    private String getItemName(SaItem item) {
+        return item.getRawName().isEmpty() ? item.getTs().getRawName() : item.getRawName();
     }
 
-    private void getOrCreateMetaData(SaItem item) {
-        metaData = item.getMetaData();
+    private MetaData getOrCreateMetaData(SaItem item) {
+        MetaData metaData = item.getMetaData();
         if (metaData == null) {
             metaData = new MetaData();
             item.setMetaData(metaData);
         }
+        return metaData;
     }
 }

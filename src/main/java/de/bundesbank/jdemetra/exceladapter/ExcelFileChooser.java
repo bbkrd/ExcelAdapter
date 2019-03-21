@@ -15,7 +15,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  * @author Deutsche Bundesbank
  */
-public class ExcelFileChooser extends JFileChooser {
+public final class ExcelFileChooser extends JFileChooser {
 
     public static final ExcelFileChooser INSTANCE = new ExcelFileChooser();
 
@@ -32,7 +32,7 @@ public class ExcelFileChooser extends JFileChooser {
         File f = getSelectedFile();
         if (f.exists() && getDialogType() == SAVE_DIALOG) {
             int result = JOptionPane.showConfirmDialog(this, "The file already exists! Do you want to overwrite it?",
-                                                       "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+                    "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
             switch (result) {
                 case JOptionPane.YES_OPTION:
                     super.approveSelection();

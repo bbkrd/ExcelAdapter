@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.bundesbank.jdemetra.exceladapter;
+package de.bundesbank.jdemetra.exceladapter.save;
 
+import de.bundesbank.jdemetra.exceladapter.Data;
 import de.bundesbank.jdemetra.exceladapter.handler.IHandler;
 import ec.tss.Ts;
 import ec.tss.sa.SaItem;
@@ -34,13 +35,17 @@ import org.openide.util.Pair;
  * @author Thomas Witthohn
  */
 @Slf4j
-public class SaveData {
+public class Save {
 
     private final Map<String, List<Ts>> infos = new TreeMap<>();
     private static final short DATE_FORMAT = 14;
 
-    public void addData(String multiDocName, List<SaItem> items) {
-        extractInfos(multiDocName, items);
+    public void addDatas(List<Data> items) {
+        items.forEach(this::addData);
+    }
+
+    public void addData(Data x) {
+        extractInfos(x);
     }
 
     public boolean save(File file) {
@@ -116,16 +121,18 @@ public class SaveData {
         }
     }
 
-    private void extractInfos(String multiDocName, List<SaItem> item) {
-        if (item.isEmpty()) {
-            log.info("Nothing in to extract from {0}", multiDocName);
+    private void extractInfos(Data data) {
+        List<SaItem> items = data.getCurrent();
+        String name = data.getName();
+        if (items.isEmpty()) {
+            log.info("Nothing in to extract from {0}", name);
             return;
         }
 
         Lookup.getDefault().lookupAll(IHandler.class).stream()
                 .filter(IHandler::isEnabled)
                 .forEach(handler -> {
-                    Pair<String, List<Ts>> pair = handler.extractData(multiDocName, item);
+                    Pair<String, List<Ts>> pair = handler.extractData(name, items);
                     infos.put(pair.first(), pair.second());
                 });
     }
