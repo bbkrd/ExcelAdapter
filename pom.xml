@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.bundesbank.jdemetra</groupId>
     <artifactId>ExcelAdapter</artifactId>
-    <version>0.6</version>
+    <version>0.7</version>
     <packaging>nbm</packaging>
     <properties>
         <netbeans.version>RELEASE82</netbeans.version>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>de.bbk</groupId>
             <artifactId>ConCur</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.8</version>
         </dependency>
 
         <!--JDemetra+ Modules > -->

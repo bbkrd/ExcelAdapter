@@ -5,13 +5,11 @@
  */
 package de.bundesbank.jdemetra.exceladapter.handler;
 
-import ec.satoolkit.DecompositionMode;
 import ec.satoolkit.x11.X11Kernel;
 import ec.tss.Ts;
 import ec.tss.TsFactory;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.algorithm.CompositeResults;
-import ec.tstoolkit.modelling.ModellingDictionary;
 import ec.tstoolkit.timeseries.simplets.TsData;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +30,7 @@ public class A1AHandler implements IHandler {
         items.forEach((saItem) -> {
             String name = saItem.getRawName().isEmpty() ? saItem.getTs().getRawName() : saItem.getRawName();
             CompositeResults result = saItem.process();
-            if (result == null || result.getData(ModellingDictionary.MODE, DecompositionMode.class) == null) {
+            if (result == null) {
                 return;
             }
             TsData tsData = result.getData(X11Kernel.A1a, TsData.class);

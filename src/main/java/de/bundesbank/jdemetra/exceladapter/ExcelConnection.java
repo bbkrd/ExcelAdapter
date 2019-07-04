@@ -41,7 +41,7 @@ public class ExcelConnection implements IExternalDataProvider {
         String sheetName = meta.get(METADATA_EXCEL_SHEET + tableName);
         String seriesName = meta.get(METADATA_EXCEL_SERIES + tableName);
         if (filePath == null || sheetName == null || seriesName == null) {
-            return createInvalidTs(tableName, "Not all necessary information");
+            return createInvalidTs(tableName, "Not all necessary information available");
         }
 
         try {
@@ -72,7 +72,7 @@ public class ExcelConnection implements IExternalDataProvider {
             return TsFactory.instance.createTs(tableName, moniker, TsInformationType.All);
         } catch (IllegalArgumentException | IOException ex) {
             Logger.getLogger(ExcelConnection.class.getName()).log(Level.SEVERE, null, ex);
-            return createInvalidTs(tableName, "Critical error!");
+            return createInvalidTs(tableName, "Critical error: " + ex.getMessage());
         }
     }
 
