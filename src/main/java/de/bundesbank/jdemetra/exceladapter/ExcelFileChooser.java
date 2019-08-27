@@ -30,22 +30,22 @@ public final class ExcelFileChooser extends JFileChooser {
     @Override
     public void approveSelection() {
         File f = getSelectedFile();
-        if (f.exists() && getDialogType() == SAVE_DIALOG) {
-            int result = JOptionPane.showConfirmDialog(this, "The file already exists! Do you want to overwrite it?",
-                    "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
-            switch (result) {
-                case JOptionPane.YES_OPTION:
-                    super.approveSelection();
-                    return;
-                case JOptionPane.NO_OPTION:
-                case JOptionPane.CLOSED_OPTION:
-                    return;
-                case JOptionPane.CANCEL_OPTION:
-                    cancelSelection();
-                    return;
-            }
+        if (!f.exists() || getDialogType() != SAVE_DIALOG) {
+            super.approveSelection();
+            return;
         }
-        super.approveSelection();
+        int result = JOptionPane.showConfirmDialog(this, "The file already exists! Do you want to overwrite it?",
+                "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+        switch (result) {
+            case JOptionPane.YES_OPTION:
+                super.approveSelection();
+                return;
+            case JOptionPane.NO_OPTION:
+            case JOptionPane.CLOSED_OPTION:
+                return;
+            case JOptionPane.CANCEL_OPTION:
+                cancelSelection();
+        }
     }
 
     @Override
