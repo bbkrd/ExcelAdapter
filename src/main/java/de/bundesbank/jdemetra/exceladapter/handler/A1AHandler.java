@@ -5,6 +5,7 @@
  */
 package de.bundesbank.jdemetra.exceladapter.handler;
 
+import de.bundesbank.jdemetra.exceladapter.ExcelMetaDataHelper;
 import ec.satoolkit.x11.X11Kernel;
 import ec.tss.Ts;
 import ec.tss.TsFactory;
@@ -13,22 +14,26 @@ import ec.tstoolkit.algorithm.CompositeResults;
 import ec.tstoolkit.timeseries.simplets.TsData;
 import java.util.ArrayList;
 import java.util.List;
-import org.openide.util.Pair;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
  * @author Thomas Witthohn
  */
-@ServiceProvider(service = IHandler.class)
-public class A1AHandler implements IHandler {
+@ServiceProvider(service = AbstractHandler.class)
+public class A1AHandler extends AbstractHandler {
+
+    public static final String SUFFIX = "-A1a";
+    private static final String NAME = "A1a",
+            OPTION_ID = "exceladapter.a1a";
+    private static final boolean DEFAULT = true;
 
     @Override
-    public Pair<String, List<Ts>> extractData(String multidocName, List<SaItem> items) {
+    protected List<Ts> extractData(List<SaItem> items) {
         List<Ts> list = new ArrayList<>();
 
         items.forEach((saItem) -> {
-            String name = saItem.getRawName().isEmpty() ? saItem.getTs().getRawName() : saItem.getRawName();
+            String name = ExcelMetaDataHelper.getItemName(saItem);
             CompositeResults result = saItem.process();
             if (result == null) {
                 return;
@@ -40,13 +45,27 @@ public class A1AHandler implements IHandler {
             }
         });
 
-        return Pair.of(multidocName + "-A1A", list);
+        return list;
 
     }
 
     @Override
-    public boolean isEnabled() {
-        return true;
+    public String getSuffix() {
+        return SUFFIX;
     }
 
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public String getOptionID() {
+        return OPTION_ID;
+    }
+
+    @Override
+    public boolean getDefault() {
+        return DEFAULT;
+    }
 }

@@ -5,15 +5,39 @@
  */
 package de.bundesbank.jdemetra.exceladapter.options;
 
+import de.bundesbank.jdemetra.exceladapter.handler.AbstractHandler;
+import ec.util.list.swing.JListSelection;
+import java.awt.BorderLayout;
+import java.util.Enumeration;
+import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
+import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 
 final class ExcelAdapterPanel extends javax.swing.JPanel {
 
     private final ExcelAdapterOptionsPanelController controller;
+    private final JListSelection<AbstractHandler> listSelection;
 
     ExcelAdapterPanel(ExcelAdapterOptionsPanelController controller) {
         this.controller = controller;
         initComponents();
+        listSelection = new JListSelection();
+        listSelection.setSourceHeader(new JLabel("Disabled"));
+        listSelection.setTargetHeader(new JLabel("Enabled"));
+        DefaultListModel<AbstractHandler> enabledModel = listSelection.getTargetModel();
+        DefaultListModel<AbstractHandler> disabledModel = listSelection.getSourceModel();
+        Lookup.getDefault().lookupAll(AbstractHandler.class)
+                .forEach(handler -> {
+                    if (handler.isEnabled()) {
+                        enabledModel.addElement(handler);
+                    } else {
+                        disabledModel.addElement(handler);
+                    }
+                });
+
+        jPanel1.add(listSelection, BorderLayout.CENTER);
+
         // TODO listen to changes in form fields and call controller.changed()
     }
 
@@ -26,63 +50,41 @@ final class ExcelAdapterPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        javax.swing.JLabel exportTables = new javax.swing.JLabel();
-        a6 = new javax.swing.JCheckBox();
-        d10 = new javax.swing.JCheckBox();
-        d11 = new javax.swing.JCheckBox();
-        d12 = new javax.swing.JCheckBox();
-        d13 = new javax.swing.JCheckBox();
 
-        jPanel1.setLayout(new java.awt.GridLayout(6, 0));
-
-        org.openide.awt.Mnemonics.setLocalizedText(exportTables, org.openide.util.NbBundle.getMessage(ExcelAdapterPanel.class, "ExcelAdapterPanel.exportTables.text")); // NOI18N
-        jPanel1.add(exportTables);
-
-        org.openide.awt.Mnemonics.setLocalizedText(a6, org.openide.util.NbBundle.getMessage(ExcelAdapterPanel.class, "ExcelAdapterPanel.a6.text")); // NOI18N
-        jPanel1.add(a6);
-
-        org.openide.awt.Mnemonics.setLocalizedText(d10, org.openide.util.NbBundle.getMessage(ExcelAdapterPanel.class, "ExcelAdapterPanel.d10.text")); // NOI18N
-        jPanel1.add(d10);
-
-        org.openide.awt.Mnemonics.setLocalizedText(d11, org.openide.util.NbBundle.getMessage(ExcelAdapterPanel.class, "ExcelAdapterPanel.d11.text")); // NOI18N
-        jPanel1.add(d11);
-
-        org.openide.awt.Mnemonics.setLocalizedText(d12, org.openide.util.NbBundle.getMessage(ExcelAdapterPanel.class, "ExcelAdapterPanel.d12.text")); // NOI18N
-        jPanel1.add(d12);
-
-        org.openide.awt.Mnemonics.setLocalizedText(d13, org.openide.util.NbBundle.getMessage(ExcelAdapterPanel.class, "ExcelAdapterPanel.d13.text")); // NOI18N
-        jPanel1.add(d13);
+        jPanel1.setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 102, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 327, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 51, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
-        a6.setSelected(NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).getBoolean(ExcelAdapterOptionsPanelController.A6, true));
-        d10.setSelected(NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).getBoolean(ExcelAdapterOptionsPanelController.D10, true));
-        d11.setSelected(NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).getBoolean(ExcelAdapterOptionsPanelController.D11, true));
-        d12.setSelected(NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).getBoolean(ExcelAdapterOptionsPanelController.D12, true));
-        d13.setSelected(NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).getBoolean(ExcelAdapterOptionsPanelController.D13, true));
     }
 
     void store() {
-        NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).putBoolean(ExcelAdapterOptionsPanelController.A6, a6.isSelected());
-        NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).putBoolean(ExcelAdapterOptionsPanelController.D10, d10.isSelected());
-        NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).putBoolean(ExcelAdapterOptionsPanelController.D11, d11.isSelected());
-        NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).putBoolean(ExcelAdapterOptionsPanelController.D12, d12.isSelected());
-        NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).putBoolean(ExcelAdapterOptionsPanelController.D13, d13.isSelected());
+        Enumeration<AbstractHandler> enabledHandler = listSelection.getTargetModel().elements();
+        Enumeration<AbstractHandler> disabledHandler = listSelection.getSourceModel().elements();
+        
+        while (enabledHandler.hasMoreElements()) {
+            AbstractHandler handler = enabledHandler.nextElement();
+            NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).putBoolean(handler.getOptionID(), true);
+        }
+
+        while (disabledHandler.hasMoreElements()) {
+            AbstractHandler handler = disabledHandler.nextElement();
+            NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).putBoolean(handler.getOptionID(), false);
+        }
     }
 
     boolean valid() {
@@ -91,11 +93,6 @@ final class ExcelAdapterPanel extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox a6;
-    private javax.swing.JCheckBox d10;
-    private javax.swing.JCheckBox d11;
-    private javax.swing.JCheckBox d12;
-    private javax.swing.JCheckBox d13;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }

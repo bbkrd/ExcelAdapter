@@ -5,7 +5,7 @@
  */
 package de.bundesbank.jdemetra.exceladapter.handler;
 
-import de.bundesbank.jdemetra.exceladapter.options.ExcelAdapterOptionsPanelController;
+import de.bundesbank.jdemetra.exceladapter.ExcelMetaDataHelper;
 import ec.satoolkit.x11.X11Kernel;
 import ec.tss.Ts;
 import ec.tss.TsFactory;
@@ -14,23 +14,26 @@ import ec.tstoolkit.algorithm.CompositeResults;
 import ec.tstoolkit.timeseries.simplets.TsData;
 import java.util.ArrayList;
 import java.util.List;
-import org.openide.util.NbPreferences;
-import org.openide.util.Pair;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
  * @author Thomas Witthohn
  */
-@ServiceProvider(service = IHandler.class)
-public class D12Handler implements IHandler {
+@ServiceProvider(service = AbstractHandler.class)
+public class D12Handler extends AbstractHandler {
+
+    private static final String SUFFIX = "-D12";
+    private static final String NAME = "D12",
+            OPTION_ID = "exceladapter.d12";
+    private static final boolean DEFAULT = true;
 
     @Override
-    public Pair<String, List<Ts>> extractData(String multidocName, List<SaItem> items) {
+    protected List<Ts> extractData(List<SaItem> items) {
         List<Ts> list = new ArrayList<>();
 
         items.forEach((saItem) -> {
-            String name = saItem.getRawName().isEmpty() ? saItem.getTs().getRawName() : saItem.getRawName();
+            String name = ExcelMetaDataHelper.getItemName(saItem);
             CompositeResults result = saItem.process();
             if (result == null) {
                 return;
@@ -42,12 +45,28 @@ public class D12Handler implements IHandler {
             }
         });
 
-        return Pair.of(multidocName + "-D12", list);
+        return list;
 
     }
 
     @Override
-    public boolean isEnabled() {
-        return NbPreferences.forModule(ExcelAdapterOptionsPanelController.class).getBoolean(ExcelAdapterOptionsPanelController.D12, true);
+    public String getSuffix() {
+        return SUFFIX;
     }
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public String getOptionID() {
+        return OPTION_ID;
+    }
+
+    @Override
+    public boolean getDefault() {
+        return DEFAULT;
+    }
+
 }

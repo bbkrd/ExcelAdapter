@@ -6,49 +6,35 @@
 package de.bundesbank.jdemetra.exceladapter.save;
 
 import de.bundesbank.jdemetra.exceladapter.Data;
-import de.bundesbank.jdemetra.exceladapter.handler.IHandler;
-import ec.tss.Ts;
-import ec.tss.sa.SaItem;
-import ec.tstoolkit.timeseries.simplets.TsDataTable;
-import ec.tstoolkit.timeseries.simplets.TsDataTableInfo;
-import ec.tstoolkit.timeseries.simplets.TsDomain;
+import de.bundesbank.jdemetra.exceladapter.handler.AbstractHandler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openide.util.Lookup;
-import org.openide.util.Pair;
 
 /**
  *
  * @author Thomas Witthohn
  */
 @Slf4j
+@lombok.experimental.UtilityClass
 public class Save {
 
-    private final Map<String, List<Ts>> infos = new TreeMap<>();
     private static final short DATE_FORMAT = 14;
 
-    public void addDatas(List<Data> items) {
-        items.forEach(this::addData);
-    }
-
-    public void addData(Data x) {
-        extractInfos(x);
-    }
-
-    public boolean save(File file) {
+    public static boolean save(List<Data> items, File file) {
+        List<? extends AbstractHandler> enabledHandler = Lookup.getDefault().lookupAll(AbstractHandler.class)
+                .stream()
+                .filter(AbstractHandler::isEnabled)
+                .collect(Collectors.toList());
         try {
             File tempFile = File.createTempFile("JDemetra+", "ExcelSave.xlsx");
             log.info("Writing to {}", tempFile.getAbsolutePath());
@@ -57,46 +43,10 @@ public class Save {
                 CellStyle cellStyle = workbook.createCellStyle();
                 cellStyle.setDataFormat(DATE_FORMAT);
 
-                for (Map.Entry<String, List<Ts>> entry : infos.entrySet()) {
-                    List<Ts> value = entry.getValue();
-                    TsDataTable dataTable = new TsDataTable();
-                    value.forEach((ts) -> {
-                        dataTable.add(ts.getTsData());
-                    });
+                items.stream()
+                        .filter(item -> !item.getCurrent().isEmpty())
+                        .forEach(item -> enabledHandler.forEach(iHandler -> iHandler.writeWorksheet(item, workbook, cellStyle)));
 
-                    TsDomain dom = dataTable.getDomain();
-                    if (dom == null || dom.isEmpty()) {
-                        //TODO?
-                        log.info("Nothing in {}", entry.getKey());
-                        continue;
-                    }
-
-                    XSSFSheet sheet = workbook.createSheet(entry.getKey());
-                    Row header = sheet.createRow(0);
-                    int columnCount = 0;
-                    for (Ts ts : value) {
-                        ++columnCount;
-                        Cell cell = header.createCell(columnCount);
-                        cell.setCellValue(ts.getRawName());
-                    }
-
-                    // write each row
-                    for (int j = 0; j < dom.getLength(); ++j) {
-                        Row row = sheet.createRow(j + 1);
-                        Cell dateCell = row.createCell(0);
-                        dateCell.setCellValue(dom.get(j).firstday().getTime());
-                        dateCell.setCellStyle(cellStyle);
-                        for (int i = 0; i < dataTable.getSeriesCount(); ++i) {
-                            TsDataTableInfo dataInfo = dataTable.getDataInfo(j, i);
-                            if (dataInfo == TsDataTableInfo.Valid) {
-                                Cell cell = row.createCell(i + 1);
-                                cell.setCellValue(dataTable.getData(j, i));
-                            }
-                        }
-                    }
-                    sheet.createFreezePane(1, 1);
-                    sheet.setColumnWidth(0, 10 * 256);
-                }
                 workbook.write(tempStream);
 
                 boolean tryAgain;
@@ -120,21 +70,4 @@ public class Save {
             return false;
         }
     }
-
-    private void extractInfos(Data data) {
-        List<SaItem> items = data.getCurrent();
-        String name = data.getName();
-        if (items.isEmpty()) {
-            log.info("Nothing in to extract from {0}", name);
-            return;
-        }
-
-        Lookup.getDefault().lookupAll(IHandler.class).stream()
-                .filter(IHandler::isEnabled)
-                .forEach(handler -> {
-                    Pair<String, List<Ts>> pair = handler.extractData(name, items);
-                    infos.put(pair.first(), pair.second());
-                });
-    }
-
 }

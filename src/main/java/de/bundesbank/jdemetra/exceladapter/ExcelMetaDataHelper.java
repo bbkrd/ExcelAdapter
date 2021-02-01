@@ -7,6 +7,9 @@ package de.bundesbank.jdemetra.exceladapter;
 
 import de.bbk.concur.util.SavedTables;
 import static de.bundesbank.jdemetra.exceladapter.ExcelConnection.*;
+import de.bundesbank.jdemetra.exceladapter.handler.A1AHandler;
+import de.bundesbank.jdemetra.exceladapter.handler.A6Handler;
+import de.bundesbank.jdemetra.exceladapter.handler.D10Handler;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.MetaData;
 import java.util.List;
@@ -32,6 +35,10 @@ public class ExcelMetaDataHelper {
         }
     }
 
+    public static String getItemName(SaItem item) {
+        return item.getRawName().isEmpty() ? item.getTs().getRawName() : item.getRawName();
+    }
+
     public void addMetaData(Data item) {
         String multiDocName = item.getName();
         for (SaItem saItem : item.getCurrent()) {
@@ -41,7 +48,7 @@ public class ExcelMetaDataHelper {
         }
     }
 
-    public void addMetaDatas(List<Data> items) {
+    public void addMetaData(List<Data> items) {
         items.forEach(this::addMetaData);
     }
 
@@ -54,7 +61,7 @@ public class ExcelMetaDataHelper {
         }
     }
 
-    public void overrideMetaDatas(List<Data> items) {
+    public void overrideMetaData(List<Data> items) {
         items.forEach(this::overrideMetaData);
     }
 
@@ -63,13 +70,13 @@ public class ExcelMetaDataHelper {
             String tableName;
             switch (table) {
                 case CALENDARFACTOR:
-                    tableName = "-A6A7";
+                    tableName = A6Handler.SUFFIX;
                     break;
                 case FORECAST:
-                    tableName = "-A1a";
+                    tableName = A1AHandler.SUFFIX;
                     break;
                 case SEASONALFACTOR:
-                    tableName = "-D10";
+                    tableName = D10Handler.SUFFIX;
                     break;
                 default:
                     tableName = "";
@@ -78,10 +85,6 @@ public class ExcelMetaDataHelper {
             function.apply(METADATA_EXCEL_SHEET + table, multiDocName + tableName);
             function.apply(METADATA_EXCEL_SERIES + table, itemName);
         }
-    }
-
-    private String getItemName(SaItem item) {
-        return item.getRawName().isEmpty() ? item.getTs().getRawName() : item.getRawName();
     }
 
     private MetaData getOrCreateMetaData(SaItem item) {

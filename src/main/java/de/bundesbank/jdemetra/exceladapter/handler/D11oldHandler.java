@@ -5,13 +5,11 @@
  */
 package de.bundesbank.jdemetra.exceladapter.handler;
 
+import de.bbk.concur.util.SeasonallyAdjusted_Saved;
 import de.bundesbank.jdemetra.exceladapter.ExcelMetaDataHelper;
-import ec.satoolkit.x11.X11Kernel;
 import ec.tss.Ts;
-import ec.tss.TsFactory;
 import ec.tss.sa.SaItem;
 import ec.tstoolkit.algorithm.CompositeResults;
-import ec.tstoolkit.timeseries.simplets.TsData;
 import java.util.ArrayList;
 import java.util.List;
 import org.openide.util.lookup.ServiceProvider;
@@ -21,13 +19,12 @@ import org.openide.util.lookup.ServiceProvider;
  * @author Thomas Witthohn
  */
 @ServiceProvider(service = AbstractHandler.class)
-public class D11Handler extends AbstractHandler {
+public class D11oldHandler extends AbstractHandler {
 
-    private static final String SUFFIX = "-D11";
-    private static final String NAME = "D11",
-            OPTION_ID = "exceladapter.d11";
-    private static final boolean DEFAULT = true;
-
+    private static final String SUFFIX = "-D11(old)";
+    private static final String NAME = "D11 old",
+            OPTION_ID = "exceladapter.d11old";
+    private static final boolean DEFAULT = false;
     @Override
     protected List<Ts> extractData(List<SaItem> items) {
         List<Ts> list = new ArrayList<>();
@@ -38,21 +35,21 @@ public class D11Handler extends AbstractHandler {
             if (result == null) {
                 return;
             }
-            TsData tsData = result.getData(X11Kernel.D11, TsData.class);
-            if (tsData != null) {
-                Ts ts = TsFactory.instance.createTs(name, null, tsData);
-                list.add(ts);
-            }
+
+            Ts ts = SeasonallyAdjusted_Saved.calcSeasonallyAdjusted(saItem.toDocument());
+            list.add(ts.rename(name));
         });
 
         return list;
 
     }
 
+
     @Override
     public String getSuffix() {
         return SUFFIX;
     }
+
     @Override
     public String getName() {
         return NAME;
@@ -67,4 +64,5 @@ public class D11Handler extends AbstractHandler {
     public boolean getDefault() {
         return DEFAULT;
     }
+
 }

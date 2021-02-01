@@ -38,15 +38,12 @@ public class SaveRunnable implements Runnable {
                 return;
             }
             File file = chooser.getSelectedFile();
-            Save sd = new Save();
-            sd.addDatas(items);
-
-            if (sd.save(file)) {
+            if (Save.save(items, file)) {
                 if (JOptionPane.showConfirmDialog(null, "Do you want to set the saved file as new input for ConCur?", "Input for ConCur", JOptionPane.YES_NO_OPTION)
                         == JOptionPane.YES_OPTION) {
                     String filePath = file.getAbsolutePath();
                     ExcelMetaDataHelper metaDataHelper = new ExcelMetaDataHelper(filePath);
-                    metaDataHelper.overrideMetaDatas(items);
+                    metaDataHelper.overrideMetaData(items);
                 }
             }
         } finally {
