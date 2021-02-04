@@ -11,6 +11,8 @@ import java.awt.BorderLayout;
 import java.util.Enumeration;
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 
@@ -25,19 +27,24 @@ final class ExcelAdapterPanel extends javax.swing.JPanel {
         listSelection = new JListSelection();
         listSelection.setSourceHeader(new JLabel("Disabled"));
         listSelection.setTargetHeader(new JLabel("Enabled"));
-        DefaultListModel<AbstractHandler> enabledModel = listSelection.getTargetModel();
-        DefaultListModel<AbstractHandler> disabledModel = listSelection.getSourceModel();
-        Lookup.getDefault().lookupAll(AbstractHandler.class)
-                .forEach(handler -> {
-                    if (handler.isEnabled()) {
-                        enabledModel.addElement(handler);
-                    } else {
-                        disabledModel.addElement(handler);
-                    }
-                });
-
         jPanel1.add(listSelection, BorderLayout.CENTER);
 
+        listSelection.getSourceModel().addListDataListener(new ListDataListener() {
+            @Override
+            public void intervalAdded(ListDataEvent e) {
+                controller.changed();
+            }
+
+            @Override
+            public void intervalRemoved(ListDataEvent e) {
+                controller.changed();
+            }
+
+            @Override
+            public void contentsChanged(ListDataEvent e) {
+                controller.changed();
+            }
+        });
         // TODO listen to changes in form fields and call controller.changed()
     }
 
@@ -70,6 +77,18 @@ final class ExcelAdapterPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
+        DefaultListModel<AbstractHandler> enabledModel = listSelection.getTargetModel();
+        DefaultListModel<AbstractHandler> disabledModel = listSelection.getSourceModel();
+        enabledModel.clear();
+        disabledModel.clear();
+        Lookup.getDefault().lookupAll(AbstractHandler.class)
+                .forEach(handler -> {
+                    if (handler.isEnabled()) {
+                        enabledModel.addElement(handler);
+                    } else {
+                        disabledModel.addElement(handler);
+                    }
+                });
     }
 
     void store() {
