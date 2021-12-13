@@ -67,7 +67,7 @@
         <dependency>
             <groupId>de.bbk</groupId>
             <artifactId>ConCur</artifactId>
-            <version>1.0.15</version>
+            <version>1.0.19</version>
         </dependency>
 
         <!--JDemetra+ Modules > -->
@@ -140,7 +140,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.18</version>
+            <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
